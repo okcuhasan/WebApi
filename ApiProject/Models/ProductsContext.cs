@@ -1,8 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace ApiProject.Models
 {
-    public class ProductsContext : DbContext
+    public class ProductsContext : IdentityDbContext<AppUser, AppRole, int>
     {
         public ProductsContext(DbContextOptions<ProductsContext> options) : base(options) { }
 
@@ -14,6 +15,8 @@ namespace ApiProject.Models
             modelBuilder.Entity<Product>().HasData(new Product() { ProductId = 2, ProductName = "Iphone 16", Price = 70000, IsActive = true });
             modelBuilder.Entity<Product>().HasData(new Product() { ProductId = 3, ProductName = "Iphone 17", Price = 80000, IsActive = true });
             modelBuilder.Entity<Product>().HasData(new Product() { ProductId = 4, ProductName = "Iphone 18", Price = 90000, IsActive = true });
+
+
         }
         public DbSet<Product> Products { get; set; }
     }

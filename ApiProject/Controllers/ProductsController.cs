@@ -1,4 +1,5 @@
-﻿using ApiProject.Models;
+﻿using ApiProject.DTO;
+using ApiProject.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,9 +20,16 @@ namespace ApiProject.Controllers
         [HttpGet]
         public async Task<IActionResult> GetProducts()
         {
-           var products = await _context.Products.ToListAsync();
+            var productsFromDatabase = await _context.Products.ToListAsync();
 
-            return Ok(products);
+            var selectedDtoFields = productsFromDatabase.Select(x => new ProductDTO
+            {
+                ProductId = x.ProductId,
+                ProductName = x.ProductName,
+                Price = x.Price,
+            });
+
+            return Ok(selectedDtoFields);
         }
 
         [HttpGet("{id}")]
@@ -41,14 +49,21 @@ namespace ApiProject.Controllers
                 }
                 else
                 {
-                    return Ok(p);
+                    var dtoField = new ProductDTO
+                    {
+                        ProductId = p.ProductId,
+                        ProductName = p.ProductName,
+                        Price = p.Price,
+                    };
+
+                    return Ok(dtoField);
                 }
             }
         }
 
 
         [HttpPost]
-        public async Task<IActionResult> CreateProduct(Product entity)
+        public async Task<IActionResult> CreateProduct(ProductDTO dtoEntity)
         {
             if(!ModelState.IsValid)
             {
@@ -56,19 +71,25 @@ namespace ApiProject.Controllers
             }
             else
             {
-                 _context.Products.Add(entity);
+                var productModel = new Product
+                {
+                    ProductName = dtoEntity.ProductName,
+                    Price = dtoEntity.Price,
+                };
+
+                 _context.Products.Add(productModel);
                  await _context.SaveChangesAsync();
 
-                return CreatedAtAction(nameof(GetProducts), new { id = entity.ProductId }, entity);
+                return CreatedAtAction(nameof(GetProducts), new { id = productModel.ProductId }, dtoEntity);
             }
         }
 
 
         
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateProduct(int? id, Product entity)
+        public async Task<IActionResult> UpdateProduct(int? id, ProductDTO entityDTO)
         {
-            if(id != entity.ProductId)
+            if(id != entityDTO.ProductId)
             {
                 return BadRequest();
             }
@@ -82,9 +103,8 @@ namespace ApiProject.Controllers
                 }
                 else
                 {
-                    product.ProductName = entity.ProductName;
-                    product.Price = entity.Price;
-                    product.IsActive = entity.IsActive;
+                    product.ProductName = entityDTO.ProductName;
+                    product.Price = entityDTO.Price;
 
                     _context.Products.Update(product);
 

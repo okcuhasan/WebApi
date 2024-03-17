@@ -1,4 +1,5 @@
 using ApiProject.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,6 +8,25 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ProductsContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("ProductsConnectionString"));
+});
+
+
+builder.Services.AddIdentity<AppUser, AppRole>() // identity i tanýmlýyorum
+    .AddEntityFrameworkStores<ProductsContext>(); // identity - entity framework entegresi
+    // .AddDefaultTokenProviders(); // identity ile þifre sýfýrlama, e posta doðrulama gibi iþlemler yapmak için kullanýlýr. jwt kullanacaðým için buna ihtiyacým yok.
+
+
+builder.Services.Configure<IdentityOptions>(options => // kayýt validasyonlarý
+{
+    options.Password.RequiredLength = 6;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireLowercase = false;
+    options.Password.RequireUppercase = false;
+    options.Password.RequireDigit = false;
+
+    options.User.RequireUniqueEmail = true;
+    options.Lockout.MaxFailedAccessAttempts = 5;
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(3);
 });
 
 
@@ -29,6 +49,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
+
+app.UseAuthentication();
 
 app.MapControllers();
 
